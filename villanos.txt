@@ -1,0 +1,1 @@
+Pregunta "\191a que universo pertenece?" (fromList [("Marvel",Prediccion "Thanos"),("Disney",Pregunta "\191hombre, mujer o leon?" (fromList [("leon",Prediccion "Scar"),("mujer",Prediccion "Malefica"),("hombre",Prediccion "Jafar")])),("DC",Prediccion "Lex Luthor")])
