@@ -1,9 +1,16 @@
 import Data.List
 
 type Sudoku = [[Int]]
+type Options = [[Int]]
 
 printSudoku :: Sudoku -> IO ()
 printSudoku = putStrLn . unlines . map (unwords . map show)
+
+opt :: Options
+opt = [[1,3,4,5],[2,3,4],[3],[4]]
+
+opt2 :: Options
+opt2 = [[1,3,4,5],[2,3,4],[6,1],[5,1]]
 
 s1 :: Sudoku
 s1 = [[0,0,0,2,6,0,7,0,1],[6,8,0,0,7,0,0,9,0],[1,9,0,0,0,4,5,0,0],
@@ -59,3 +66,20 @@ squaresAreValid xs = rowsAreValid $ createAllSquares xs
 
 isValid :: Sudoku -> Bool
 isValid s = rowsAreValid s && colsAreValid s && squaresAreValid s
+
+getAlreadyTakenValues :: Options -> [Int]
+-- devuelve los valores que ya están fijos
+getAlreadyTakenValues [] = []
+getAlreadyTakenValues (x:xs)
+    | length x == 1 = x ++ getAlreadyTakenValues xs
+    | length x > 1 = getAlreadyTakenValues xs
+
+cleanCell :: [Int] -> [Int] -> [Int]
+-- x es la lista de numeros a eliminar. x es la lista de los posibles numeros de una celda
+cleanCell x y
+    | length y == 1 = y
+    | length y > 1  = y \\ x 
+
+cleanRows :: Options -> Options
+cleanRows [] = []
+cleanRows x = map (cleanCell (getAlreadyTakenValues x)) x  
