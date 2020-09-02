@@ -81,5 +81,7 @@ cleanCell x y
     | length y > 1  = y \\ x 
 
 cleanRows :: Options -> Options
-cleanRows [] = []
+-- Recibe una fila, cada elemento tiene todos los valores que puede tomar la celda
+-- La funcion se fija todas las celdas con 1 sola opcion, y elimina esa opcion de las otras celdas
+-- Ej: Si tengo un 8 al principio de una fila, entonces ningun otra celda de esa fila puede tener un 8
 cleanRows x = map (cleanCell (getAlreadyTakenValues x)) x  
