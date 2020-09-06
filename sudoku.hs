@@ -1,4 +1,8 @@
 import Data.List
+import Control.Exception
+import System.Environment  
+import System.IO  
+import System.IO.Error
 
 type Sudoku = [[Int]]
 type Options = [[Int]]
@@ -174,3 +178,19 @@ solve :: [Options] -> [Options]
 solve xs = if getTotalOptions xs > 81 
             then solve (cleanSingleOptions (cleanOptions xs) )
             else xs 
+
+--------------MAIN--------------
+
+main = toTry `catch` handler     
+                 
+toTry :: IO ()     
+toTry = do (fileName:_) <- getArgs     
+           contents <- readFile fileName
+           printSudoku $ map (map head) (solve $ generateOptions (read contents::Sudoku))         
+    
+handler :: IOError -> IO ()     
+handler e     
+    | isDoesNotExistError e =   
+        case ioeGetFileName e of Just path -> putStrLn $ "Error! File does not exist at: " ++ path  
+                                 Nothing -> putStrLn "Error! File does not exist at unknown location!"  
+    | otherwise = ioError e
