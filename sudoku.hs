@@ -126,5 +126,51 @@ generateOptions :: Sudoku -> [Options]
 -- generateOption pero para todas las filas
 generateOptions xs = map generateOption xs
 
---solve :: [Options] -> [Options]
---solve 
+getTotalOptions :: [Options] -> Int
+-- Me da la cantidad total de opciones que hay en el sudoku. En un sudoku resuelto, devuelve 81 (una opcion en cada cacillero)
+getTotalOptions [] = 0
+getTotalOptions (x : xs) = sum (map length x) + getTotalOptions xs
+
+countPossibilities :: Options -> Int -> Int
+-- cuenta la cantidad de cacilleros en los que podria ir un número
+countPossibilities [] _ = 0
+countPossibilities (x : xs) n = if (elem n x) then 1 + (countPossibilities xs n) else countPossibilities xs n
+
+selectTheOnlyOption :: Options -> Int -> Options
+-- cuando un numero puede ir en un solo cacillero de la fila, elije ese cacillero
+-- ej: [[1,2,3],[2,3],[2,3]] en este caso, el 1 solo puede estar en el primer cacillero, entonces devuelve [[1],[2,3],[2,3]]
+selectTheOnlyOption [] _ = []
+selectTheOnlyOption (x : xs) n = if (elem n x) then [n] : selectTheOnlyOption xs n else x : selectTheOnlyOption xs n
+
+selectSingleOptions :: [Options] -> Int -> [Options]
+-- llama a selectTheOnlyOption para cada fila. n es el numero que va a checkear si se puede dejar fijo
+-- ej: [[],[],[[1,2,3],[1,2],[1,2]]] y el n = 3 devuelve [[],[],[[3],[1,2],[1,2]]]
+selectSingleOptions [] _ = []
+selectSingleOptions (x : xs) n = if(countPossibilities x n == 1) 
+                                    then selectTheOnlyOption x n : selectSingleOptions xs n 
+                                    else x : selectSingleOptions xs n
+
+selectAllSingleOptions :: [Options] -> Int -> [Options]
+-- Llama a selectSingleOptions para todos los n de 1 a 9
+-- ej : [[[3,9],[3,4,5],[3,4,5,6]],[[1,5,7],[1,4,7],[1,4,7]],[[1,2,3],[1,2,4,5],[1,2,5]]] devuelve:
+-- [[[9],[3,4,5],[6]],[[5],[1,4,7],[1,4,7]],[[3],[4],[5]]]
+selectAllSingleOptions xs n = if(n > 9) 
+                                then xs
+                                else selectAllSingleOptions (selectSingleOptions xs n) (n + 1)
+
+selectAllSingleOptionsRows ::[Options] -> [Options]
+selectAllSingleOptionsRows xs = selectAllSingleOptions xs 1
+
+selectAllSingleOptionsCol :: [Options] -> [Options]
+selectAllSingleOptionsCol xs = transpose (selectAllSingleOptions (transpose xs) 1)
+
+selectAllSingleOptionsSq :: [Options] -> [Options]
+selectAllSingleOptionsSq xs = createAllSquaresOpt (selectAllSingleOptions (createAllSquaresOpt xs) 1)
+
+cleanSingleOptions :: [Options] -> [Options]
+cleanSingleOptions xs = selectAllSingleOptionsRows ( selectAllSingleOptionsCol ( selectAllSingleOptionsSq xs ) )
+
+solve :: [Options] -> [Options]
+solve xs = if getTotalOptions xs > 81 
+            then solve (cleanSingleOptions (cleanOptions xs) )
+            else xs 
