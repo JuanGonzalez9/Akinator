@@ -201,17 +201,22 @@ mensajeSolucion cantidad
  
  
 --------------MAIN--------------
+readFileWith :: String -> IO ()
+readFileWith name = do
+    putStrLn name
+    fileHandler <- openFile name ReadMode
+    contents <- hGetContents fileHandler
+    printSudoku $ map (map head) (solve $ generateOptions (read contents::Sudoku))
+    hClose fileHandler
 
-main = toTry `catch` handler     
-                 
-toTry :: IO ()     
-toTry = do (fileName:_) <- getArgs     
-           contents <- readFile fileName
-           printSudoku $ map (map head) (solve $ generateOptions (read contents::Sudoku))         
-    
-handler :: IOError -> IO ()     
-handler e     
-    | isDoesNotExistError e =   
-        case ioeGetFileName e of Just path -> putStrLn $ "Error! File does not exist at: " ++ path  
-                                 Nothing -> putStrLn "Error! File does not exist at unknown location!"  
-    | otherwise = ioError e
+showErrorOpeningFile :: IOException -> IO ()
+showErrorOpeningFile exception = do
+    if isDoesNotExistErrorType (ioeGetErrorType exception)
+    then putStrLn ("El archivo específicado no existe :(")
+    else putStrLn ("Ocurrió un error desconcido al intentar abrir el archiv :( --> " ++ show exception)
+
+main = do
+    putStrLn "Bienvenido al resolvedor de sudokus!"
+    putStrLn "Ingrese el nombre del archivo que contiene el estado inicial: "
+    name <- getLine
+    readFileWith name `catch` showErrorOpeningFile
