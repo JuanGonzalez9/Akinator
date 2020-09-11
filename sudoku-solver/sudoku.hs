@@ -154,6 +154,12 @@ solve xs = if getTotalOptions xs > 81
             then solve (cleanSingleOptions (cleanOptions xs) )
             else xs 
 
+-- retorna la cantidad de iteraciones que llevo resolverlo
+getSudokuIterations :: [Options] -> Int -> Int
+getSudokuIterations xs n = if getTotalOptions xs > 81 
+            then 1 + getSudokuIterations (cleanSingleOptions (cleanOptions xs) ) (n + 1)
+            else 0
+
 --------------MAIN--------------
 -- creo el remove para eliminar los element que querramos de las listas
 -- en este caso va a ser el 0, lo dejo generico por si lo podemos usar para otra cosa.
@@ -198,7 +204,8 @@ readFileWith name = do
     let sudoku = buildPuzzle rows
 
     if (hasUniqueSolution sudoku)
-    then printSudoku $ map (map head) (solve $ generateOptions sudoku)
+    then do printSudoku $ map (map head) (solve $ generateOptions sudoku)
+            putStrLn ("Cantidad de iteraciones: " ++ show (getSudokuIterations (generateOptions sudoku) 0))
     else putStrLn (cantSolveItErrorMessage sudoku)
 
     hClose fileHandler
