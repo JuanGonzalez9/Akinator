@@ -192,7 +192,6 @@ buildPuzzle rows = do
 
 readFileWith :: String -> IO ()
 readFileWith name = do
-    putStrLn name
     fileHandler <- openFile name ReadMode
     contents <- hGetContents fileHandler
     let rows = lines contents
