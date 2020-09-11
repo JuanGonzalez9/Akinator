@@ -9,7 +9,6 @@ type Options = [[Int]]
 
 printSudoku :: Sudoku -> IO ()
 printSudoku = putStrLn . unlines . map (unwords . map show)
-|
 rowIsValid :: [Int] -> Bool
 rowIsValid [] = True
 rowIsValid (x : xs)
@@ -155,6 +154,7 @@ solve xs = if getTotalOptions xs > 81
             then solve (cleanSingleOptions (cleanOptions xs) )
             else xs 
 
+--------------MAIN--------------
 -- creo el remove para eliminar los element que querramos de las listas
 -- en este caso va a ser el 0, lo dejo generico por si lo podemos usar para otra cosa.
 -- filtra los element distintos de e (recorrida de la lista)
@@ -162,21 +162,29 @@ remove element list = filter (\e -> e/=element) list
 
 -- concateno el sudoku en una lista unica, uso el remove para sacar los 0
 -- y despues calculo el largo de la lista
-juntarSudoku :: Sudoku -> Int
-juntarSudoku a = length ( remove 0 (concat a))
-
+filledPositionsOf :: Sudoku -> Int
+filledPositionsOf a = length ( remove 0 (concat a))
 
 
 --Mensaje para ver si tiene solucion unica o no.
-mensajeSolucion :: Int -> String
-mensajeSolucion cantidad
- | cantidad <= 5 = "Tiene mas de una solucion... libera mas numeros man!!!"
- | cantidad <= 16 = "Tiene mas de una solucion, no podemos resolverlo =("
- | cantidad <= 80 = "Tiene solucion unica!! Ahora lo resolvemos "
- | otherwise = "Oculta alguna... ya esta resuelto"
+errorMessageFor :: Int -> String
+errorMessageFor filledPositions
+ | filledPositions <= 5 = "Tiene más de una solución... libera mas números man!!!"
+ | filledPositions <= 16 = "Tiene más de una solución, no podemos resolverlo :("
+ | otherwise = "Ya está resuelto"
  
  
---------------MAIN--------------
+
+cantSolveItErrorMessage :: Sudoku -> String
+cantSolveItErrorMessage sudoku = do
+    let filledPositions = filledPositionsOf sudoku
+    errorMessageFor filledPositions
+
+hasUniqueSolution :: Sudoku -> Bool
+hasUniqueSolution sudoku = do
+    let filledPositions = filledPositionsOf sudoku
+    filledPositions > 16 && filledPositions < 81
+
 buildPuzzle :: [String] -> [[Int]]
 buildPuzzle rows = do
     let sudoku = []
@@ -189,7 +197,11 @@ readFileWith name = do
     contents <- hGetContents fileHandler
     let rows = lines contents
     let sudoku = buildPuzzle rows
-    printSudoku $ map (map head) (solve $ generateOptions sudoku)
+
+    if (hasUniqueSolution sudoku)
+    then printSudoku $ map (map head) (solve $ generateOptions sudoku)
+    else putStrLn (cantSolveItErrorMessage sudoku)
+
     hClose fileHandler
 
 showErrorOpeningFile :: IOException -> IO ()
